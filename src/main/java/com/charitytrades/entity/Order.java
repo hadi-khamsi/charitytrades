@@ -47,6 +47,8 @@ public class Order {
 
     private LocalDateTime settledAt;
 
+    private String statusMessage;
+
     public Order() {}
 
     public Order(User user, Project project, BigDecimal amount) {
@@ -92,4 +94,7 @@ public class Order {
 
     public LocalDateTime getSettledAt() { return settledAt; }
     public void setSettledAt(LocalDateTime settledAt) { this.settledAt = settledAt; }
+
+    public String getStatusMessage() { return statusMessage; }
+    public void setStatusMessage(String statusMessage) { this.statusMessage = statusMessage; }
 }

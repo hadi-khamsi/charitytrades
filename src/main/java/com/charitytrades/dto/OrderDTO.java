@@ -21,6 +21,7 @@ public class OrderDTO {
     private String donationLink;
     private LocalDateTime createdAt;
     private LocalDateTime settledAt;
+    private String statusMessage;
 
     public OrderDTO() {}
 
@@ -39,6 +40,7 @@ public class OrderDTO {
         dto.donationLink = order.getDonationLink();
         dto.createdAt = order.getCreatedAt();
         dto.settledAt = order.getSettledAt();
+        dto.statusMessage = order.getStatusMessage();
         if (order.getMatchedWith() != null) {
             dto.matchedWithCorporate = order.getMatchedWith().getCorporateUser().getUsername();
         }
@@ -73,4 +75,6 @@ public class OrderDTO {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getSettledAt() { return settledAt; }
     public void setSettledAt(LocalDateTime settledAt) { this.settledAt = settledAt; }
+    public String getStatusMessage() { return statusMessage; }
+    public void setStatusMessage(String statusMessage) { this.statusMessage = statusMessage; }
 }

@@ -44,6 +44,16 @@ public class OrderController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @PostMapping("/{id}/clearing")
+    public ResponseEntity<?> startClearing(@PathVariable Long id) {
+        try {
+            Order order = exchangeService.startClearing(id);
+            return ResponseEntity.ok(OrderDTO.fromEntity(order));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @PostMapping("/{id}/settle")
     public ResponseEntity<?> settleOrder(@PathVariable Long id) {
         try {

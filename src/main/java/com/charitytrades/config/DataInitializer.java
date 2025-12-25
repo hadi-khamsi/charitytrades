@@ -1,7 +1,9 @@
 package com.charitytrades.config;
 
 import com.charitytrades.entity.*;
-import com.charitytrades.repository.*;
+import com.charitytrades.repository.CharityRepository;
+import com.charitytrades.repository.UserRepository;
+import com.charitytrades.service.ExchangeService;
 import com.charitytrades.service.GlobalGivingImportService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -15,20 +17,17 @@ public class DataInitializer implements CommandLineRunner {
 
     private final CharityRepository charityRepository;
     private final UserRepository userRepository;
-    private final MatchingOrderRepository matchingOrderRepository;
-    private final CentralBookRepository centralBookRepository;
     private final GlobalGivingImportService globalGivingImportService;
+    private final ExchangeService exchangeService;
 
     public DataInitializer(CharityRepository charityRepository,
                           UserRepository userRepository,
-                          MatchingOrderRepository matchingOrderRepository,
-                          CentralBookRepository centralBookRepository,
-                          GlobalGivingImportService globalGivingImportService) {
+                          GlobalGivingImportService globalGivingImportService,
+                          ExchangeService exchangeService) {
         this.charityRepository = charityRepository;
         this.userRepository = userRepository;
-        this.matchingOrderRepository = matchingOrderRepository;
-        this.centralBookRepository = centralBookRepository;
         this.globalGivingImportService = globalGivingImportService;
+        this.exchangeService = exchangeService;
     }
 
     @Override
@@ -41,39 +40,50 @@ public class DataInitializer implements CommandLineRunner {
         List<Project> projects = globalGivingImportService.importFeaturedProjects(10);
         System.out.println("Loaded " + projects.size() + " projects from GlobalGiving");
 
-        createDemoUsers(projects);
+        if (userRepository.count() == 0) {
+            userRepository.save(new User("guest", "guest@charitytrades.com", "-", AccountType.PERSONAL));
+            System.out.println("Created guest user");
+        }
+
+        // Create corporate matcher and add matching pledges for select projects
+        createCorporateMatchers(projects);
     }
 
-    private void createDemoUsers(List<Project> projects) {
-        userRepository.save(new User("demo_user", "demo@charitytrades.com", "demo123", AccountType.PERSONAL));
-        userRepository.save(new User("test_trader", "test@charitytrades.com", "test123", AccountType.PERSONAL));
+    private void createCorporateMatchers(List<Project> projects) {
+        User corporate = userRepository.save(
+            new User("MatchCorp", "matching@corp.example", "-", AccountType.CORPORATE)
+        );
+        System.out.println("Created corporate matcher user");
 
-        User techCorp = userRepository.save(new User("TechCorp", "matching@techcorp.com", "corp123", AccountType.CORPORATE));
-        User greenFoundation = userRepository.save(new User("GreenFoundation", "grants@greenfoundation.org", "green123", AccountType.CORPORATE));
-        User globalBank = userRepository.save(new User("GlobalBank", "csr@globalbank.com", "bank123", AccountType.CORPORATE));
+        // Add matching pledges for projects at indices 0, 1, 4, 6, 7 (IDs will be 1, 2, 5, 7, 8)
+        int[] projectIndices = {0, 1, 4, 6, 7};
+        BigDecimal[] matchRatios = {
+            new BigDecimal("1.0"),   // 1:1 match
+            new BigDecimal("2.0"),   // 2:1 match
+            new BigDecimal("1.5"),   // 1.5:1 match
+            new BigDecimal("1.0"),   // 1:1 match
+            new BigDecimal("0.5")    // 0.5:1 match
+        };
+        BigDecimal[] maxAmounts = {
+            new BigDecimal("500"),
+            new BigDecimal("1000"),
+            new BigDecimal("750"),
+            new BigDecimal("500"),
+            new BigDecimal("250")
+        };
 
-        if (projects.size() >= 1) {
-            createMatchingPledge(techCorp, projects.get(0), new BigDecimal("1.0"), new BigDecimal("500.00"));
-            createMatchingPledge(greenFoundation, projects.get(0), new BigDecimal("2.0"), new BigDecimal("2000.00"));
+        for (int i = 0; i < projectIndices.length; i++) {
+            int idx = projectIndices[i];
+            if (idx < projects.size()) {
+                Project project = projects.get(idx);
+                exchangeService.createMatchingPledge(
+                    corporate.getId(),
+                    project.getId(),
+                    matchRatios[i],
+                    maxAmounts[i]
+                );
+                System.out.println("Added matching pledge for project: " + project.getName());
+            }
         }
-        if (projects.size() >= 2) {
-            createMatchingPledge(globalBank, projects.get(1), new BigDecimal("1.0"), new BigDecimal("5000.00"));
-        }
-        if (projects.size() >= 3) {
-            createMatchingPledge(techCorp, projects.get(2), new BigDecimal("1.5"), new BigDecimal("1000.00"));
-        }
-        if (projects.size() >= 4) {
-            createMatchingPledge(greenFoundation, projects.get(3), new BigDecimal("1.0"), new BigDecimal("750.00"));
-        }
-    }
-
-    private void createMatchingPledge(User corporate, Project project, BigDecimal ratio, BigDecimal maxAmount) {
-        MatchingOrder pledge = new MatchingOrder(corporate, project, ratio, maxAmount);
-        pledge = matchingOrderRepository.save(pledge);
-
-        CentralBook clob = centralBookRepository.findByProjectId(project.getId())
-                .orElseGet(() -> centralBookRepository.save(new CentralBook(project)));
-        clob.addAsk(pledge);
-        centralBookRepository.save(clob);
     }
 }

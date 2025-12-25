@@ -43,6 +43,7 @@ public class ExchangeService {
 
         Order order = new Order(user, project, amount);
         order.setStatus(OrderStatus.NEW);
+        order.setStatusMessage("Order received by brokerage");
         order = orderRepository.save(order);
 
         order = validateOrder(order, project);
@@ -59,10 +60,13 @@ public class ExchangeService {
     private Order validateOrder(Order order, Project project) {
         if (order.getAmount().compareTo(project.getMinimumAmount()) < 0) {
             order.setStatus(OrderStatus.REJECTED);
+            order.setStatusMessage("Credit Risk Check FAILED: Amount $" + order.getAmount() +
+                " is below minimum $" + project.getMinimumAmount());
             return orderRepository.save(order);
         }
 
         order.setStatus(OrderStatus.VALIDATED);
+        order.setStatusMessage("Credit Risk Check PASSED: Amount meets minimum requirement");
         return orderRepository.save(order);
     }
 
@@ -70,6 +74,11 @@ public class ExchangeService {
         RouteType route = orderRouter.determineRoute(order);
         order.setRouteType(route);
         order.setStatus(OrderStatus.ROUTED);
+        if (route == RouteType.CLOB) {
+            order.setStatusMessage("Router: Corporate matchers available, routing to internal CLOB");
+        } else {
+            order.setStatusMessage("Router: No matchers available, routing DIRECT to GlobalGiving");
+        }
         return orderRepository.save(order);
     }
 
@@ -95,9 +104,12 @@ public class ExchangeService {
             order.setMatchedAmount(matchAmount);
             order.setTotalImpact(order.getAmount().add(matchAmount));
             order.setStatus(OrderStatus.MATCHED);
+            order.setStatusMessage("MATCHED: " + matcher.getCorporateUser().getUsername() +
+                " will match $" + matchAmount + " (ratio " + matcher.getMatchRatio() + ":1)");
         } else {
             order.setTotalImpact(order.getAmount());
             order.setStatus(OrderStatus.EXECUTED);
+            order.setStatusMessage("EXECUTED: No active matcher found, proceeding without match");
         }
 
         order.setDonationLink(generateDonationLink(order));
@@ -108,6 +120,7 @@ public class ExchangeService {
     private Order executeDirect(Order order) {
         order.setTotalImpact(order.getAmount());
         order.setStatus(OrderStatus.EXECUTED);
+        order.setStatusMessage("EXECUTED: Routed directly to GlobalGiving (no matching)");
         order.setDonationLink(generateDonationLink(order));
 
         CentralBook clob = getOrCreateCentralBook(order.getProject());
@@ -126,18 +139,30 @@ public class ExchangeService {
     }
 
     @Transactional
-    public Order settleOrder(Long orderId) {
+    public Order startClearing(Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
 
         if (order.getStatus() != OrderStatus.MATCHED && order.getStatus() != OrderStatus.EXECUTED) {
-            throw new RuntimeException("Order cannot be settled in current status: " + order.getStatus());
+            throw new RuntimeException("Order cannot start clearing in current status: " + order.getStatus());
         }
 
         order.setStatus(OrderStatus.CLEARING);
-        order = orderRepository.save(order);
+        order.setStatusMessage("CLEARING: User clicked donation link, awaiting payment confirmation");
+        return orderRepository.save(order);
+    }
+
+    @Transactional
+    public Order settleOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
+
+        if (order.getStatus() != OrderStatus.CLEARING) {
+            throw new RuntimeException("Order must be in CLEARING status to settle. Current: " + order.getStatus());
+        }
 
         order.setStatus(OrderStatus.SETTLED);
+        order.setStatusMessage("SETTLED: Donation confirmed, order complete");
         order.setSettledAt(LocalDateTime.now());
         return orderRepository.save(order);
     }
