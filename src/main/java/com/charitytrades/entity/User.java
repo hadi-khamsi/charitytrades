@@ -21,6 +21,10 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AccountType accountType = AccountType.PERSONAL;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Order> orders = new ArrayList<>();
 
@@ -30,6 +34,14 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
+        this.accountType = AccountType.PERSONAL;
+    }
+
+    public User(String username, String email, String password, AccountType accountType) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.accountType = accountType;
     }
 
     public Long getId() { return id; }
@@ -44,8 +56,13 @@ public class User {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
+    public AccountType getAccountType() { return accountType; }
+    public void setAccountType(AccountType accountType) { this.accountType = accountType; }
+
     public List<Order> getOrders() { return orders; }
     public void setOrders(List<Order> orders) { this.orders = orders; }
 
     public String getName() { return username; }
+
+    public boolean isCorporate() { return accountType == AccountType.CORPORATE; }
 }

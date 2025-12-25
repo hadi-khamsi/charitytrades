@@ -1,5 +1,6 @@
 package com.charitytrades.service;
 
+import com.charitytrades.entity.AccountType;
 import com.charitytrades.entity.User;
 import com.charitytrades.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -18,14 +19,15 @@ public class UserService {
     }
 
     @Transactional
-    public User createUser(String username, String email, String password) {
+    public User createUser(String username, String email, String password, AccountType accountType) {
         if (userRepository.existsByUsername(username)) {
             throw new RuntimeException("Username already taken: " + username);
         }
         if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email already registered: " + email);
         }
-        return userRepository.save(new User(username, email, password));
+        AccountType type = accountType != null ? accountType : AccountType.PERSONAL;
+        return userRepository.save(new User(username, email, password, type));
     }
 
     public Optional<User> findById(Long id) {

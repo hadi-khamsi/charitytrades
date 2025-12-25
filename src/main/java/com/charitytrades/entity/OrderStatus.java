@@ -1,8 +1,12 @@
 package com.charitytrades.entity;
 
 public enum OrderStatus {
-    PENDING,
-    CONFIRMED,
-    REJECTED,
-    COMPLETED
+    NEW,
+    VALIDATED,
+    ROUTED,
+    MATCHED,
+    EXECUTED,
+    CLEARING,
+    SETTLED,
+    REJECTED
 }

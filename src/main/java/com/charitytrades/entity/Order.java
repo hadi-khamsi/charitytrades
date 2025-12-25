@@ -25,10 +25,27 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrderStatus status = OrderStatus.PENDING;
+    private OrderStatus status = OrderStatus.NEW;
+
+    @Enumerated(EnumType.STRING)
+    private RouteType routeType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "matched_with_id")
+    private MatchingOrder matchedWith;
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal matchedAmount;
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal totalImpact;
+
+    private String donationLink;
 
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    private LocalDateTime settledAt;
 
     public Order() {}
 
@@ -36,7 +53,7 @@ public class Order {
         this.user = user;
         this.project = project;
         this.amount = amount;
-        this.status = OrderStatus.PENDING;
+        this.status = OrderStatus.NEW;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -55,6 +72,24 @@ public class Order {
     public OrderStatus getStatus() { return status; }
     public void setStatus(OrderStatus status) { this.status = status; }
 
+    public RouteType getRouteType() { return routeType; }
+    public void setRouteType(RouteType routeType) { this.routeType = routeType; }
+
+    public MatchingOrder getMatchedWith() { return matchedWith; }
+    public void setMatchedWith(MatchingOrder matchedWith) { this.matchedWith = matchedWith; }
+
+    public BigDecimal getMatchedAmount() { return matchedAmount; }
+    public void setMatchedAmount(BigDecimal matchedAmount) { this.matchedAmount = matchedAmount; }
+
+    public BigDecimal getTotalImpact() { return totalImpact; }
+    public void setTotalImpact(BigDecimal totalImpact) { this.totalImpact = totalImpact; }
+
+    public String getDonationLink() { return donationLink; }
+    public void setDonationLink(String donationLink) { this.donationLink = donationLink; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getSettledAt() { return settledAt; }
+    public void setSettledAt(LocalDateTime settledAt) { this.settledAt = settledAt; }
 }

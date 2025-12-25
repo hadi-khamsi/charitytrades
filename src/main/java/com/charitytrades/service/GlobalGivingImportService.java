@@ -42,17 +42,7 @@ public class GlobalGivingImportService {
             throw new RuntimeException("Project not found on GlobalGiving: " + globalGivingProjectId);
         }
 
-        Charity charity = findOrCreateCharity(ggProject);
-
-        Project project = new Project();
-        project.setName(ggProject.getTitle());
-        project.setDescription(ggProject.getSummary());
-        project.setImageUrl(ggProject.getImageLink());
-        project.setGlobalGivingProjectId(ggProject.getId());
-        project.setCharity(charity);
-        project.setMinimumAmount(new BigDecimal("10.00"));
-
-        return projectRepository.save(project);
+        return createProjectFromGG(ggProject);
     }
 
     @Transactional
@@ -62,8 +52,19 @@ public class GlobalGivingImportService {
 
         for (int i = 0; i < Math.min(limit, ggProjects.size()); i++) {
             try {
-                Project project = importProject(ggProjects.get(i).getId());
-                imported.add(project);
+                GGProject ggProject = ggProjects.get(i);
+                if (ggProject.getId() == null) continue;
+
+                List<Project> existing = projectRepository.findAll().stream()
+                        .filter(p -> ggProject.getId().equals(p.getGlobalGivingProjectId()))
+                        .toList();
+
+                if (!existing.isEmpty()) {
+                    imported.add(existing.get(0));
+                } else {
+                    Project project = createProjectFromGG(ggProject);
+                    imported.add(project);
+                }
             } catch (Exception e) {
                 System.err.println("Failed to import project: " + e.getMessage());
             }
@@ -79,14 +80,47 @@ public class GlobalGivingImportService {
 
         for (int i = 0; i < Math.min(limit, ggProjects.size()); i++) {
             try {
-                Project project = importProject(ggProjects.get(i).getId());
-                imported.add(project);
+                GGProject ggProject = ggProjects.get(i);
+                if (ggProject.getId() == null) continue;
+
+                List<Project> existing = projectRepository.findAll().stream()
+                        .filter(p -> ggProject.getId().equals(p.getGlobalGivingProjectId()))
+                        .toList();
+
+                if (!existing.isEmpty()) {
+                    imported.add(existing.get(0));
+                } else {
+                    Project project = createProjectFromGG(ggProject);
+                    imported.add(project);
+                }
             } catch (Exception e) {
                 System.err.println("Failed to import project: " + e.getMessage());
             }
         }
 
         return imported;
+    }
+
+    private Project createProjectFromGG(GGProject ggProject) {
+        Charity charity = findOrCreateCharity(ggProject);
+
+        Project project = new Project();
+        String title = ggProject.getTitle();
+        if (title != null && title.length() > 250) {
+            title = title.substring(0, 250) + "...";
+        }
+        project.setName(title);
+        String summary = ggProject.getSummary();
+        if (summary != null && summary.length() > 1900) {
+            summary = summary.substring(0, 1900) + "...";
+        }
+        project.setDescription(summary);
+        project.setImageUrl(ggProject.getImageLink());
+        project.setGlobalGivingProjectId(ggProject.getId());
+        project.setCharity(charity);
+        project.setMinimumAmount(new BigDecimal("10.00"));
+
+        return projectRepository.save(project);
     }
 
     private Charity findOrCreateCharity(GGProject ggProject) {
@@ -114,7 +148,11 @@ public class GlobalGivingImportService {
 
         Charity charity = new Charity();
         charity.setName(orgName);
-        charity.setDescription(ggProject.getOrganization().getMission());
+        String mission = ggProject.getOrganization().getMission();
+        if (mission != null && mission.length() > 900) {
+            mission = mission.substring(0, 900) + "...";
+        }
+        charity.setDescription(mission);
         charity.setGlobalGivingOrgId(ggOrgId);
 
         return charityRepository.save(charity);

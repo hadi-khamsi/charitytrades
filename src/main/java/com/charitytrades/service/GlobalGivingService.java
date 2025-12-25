@@ -28,7 +28,7 @@ public class GlobalGivingService {
         rateLimiter.acquire();
         try {
             GGProjectsResponse response = restClient.get()
-                    .uri("/api/public/projectservice/featured/projects?api_key={apiKey}", apiKey)
+                    .uri("/api/public/projectservice/featured/projects.json?api_key={apiKey}", apiKey)
                     .retrieve()
                     .body(GGProjectsResponse.class);
             return response != null ? response.getProjectList() : List.of();
@@ -42,7 +42,7 @@ public class GlobalGivingService {
         rateLimiter.acquire();
         try {
             GGProjectsResponse response = restClient.get()
-                    .uri("/api/public/projectservice/themes/{themeId}/projects/active?api_key={apiKey}",
+                    .uri("/api/public/projectservice/themes/{themeId}/projects/active.json?api_key={apiKey}",
                             themeId, apiKey)
                     .retrieve()
                     .body(GGProjectsResponse.class);
@@ -57,7 +57,7 @@ public class GlobalGivingService {
         rateLimiter.acquire();
         try {
             GGProjectsResponse response = restClient.get()
-                    .uri("/api/public/projectservice/projects/{projectId}?api_key={apiKey}",
+                    .uri("/api/public/projectservice/projects/{projectId}.json?api_key={apiKey}",
                             projectId, apiKey)
                     .retrieve()
                     .body(GGProjectsResponse.class);
@@ -73,7 +73,7 @@ public class GlobalGivingService {
         rateLimiter.acquire();
         try {
             GGProjectsResponse response = restClient.get()
-                    .uri("/api/public/projectservice/organizations/{orgId}/projects/active?api_key={apiKey}",
+                    .uri("/api/public/projectservice/organizations/{orgId}/projects/active.json?api_key={apiKey}",
                             organizationId, apiKey)
                     .retrieve()
                     .body(GGProjectsResponse.class);

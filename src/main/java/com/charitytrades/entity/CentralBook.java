@@ -18,11 +18,19 @@ public class CentralBook {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "central_book_orders",
+        name = "clob_bids",
         joinColumns = @JoinColumn(name = "central_book_id"),
         inverseJoinColumns = @JoinColumn(name = "order_id")
     )
-    private List<Order> orders = new ArrayList<>();
+    private List<Order> bids = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "clob_asks",
+        joinColumns = @JoinColumn(name = "central_book_id"),
+        inverseJoinColumns = @JoinColumn(name = "matching_order_id")
+    )
+    private List<MatchingOrder> asks = new ArrayList<>();
 
     public CentralBook() {}
 
@@ -30,8 +38,22 @@ public class CentralBook {
         this.project = project;
     }
 
-    public void addOrder(Order order) {
-        this.orders.add(order);
+    public void addBid(Order order) {
+        this.bids.add(order);
+    }
+
+    public void addAsk(MatchingOrder matchingOrder) {
+        this.asks.add(matchingOrder);
+    }
+
+    public void removeBid(Order order) {
+        this.bids.remove(order);
+    }
+
+    public List<MatchingOrder> getAvailableAsks() {
+        return asks.stream()
+                .filter(MatchingOrder::isAvailable)
+                .toList();
     }
 
     public Long getId() { return id; }
@@ -40,6 +62,9 @@ public class CentralBook {
     public Project getProject() { return project; }
     public void setProject(Project project) { this.project = project; }
 
-    public List<Order> getOrders() { return orders; }
-    public void setOrders(List<Order> orders) { this.orders = orders; }
+    public List<Order> getBids() { return bids; }
+    public void setBids(List<Order> bids) { this.bids = bids; }
+
+    public List<MatchingOrder> getAsks() { return asks; }
+    public void setAsks(List<MatchingOrder> asks) { this.asks = asks; }
 }

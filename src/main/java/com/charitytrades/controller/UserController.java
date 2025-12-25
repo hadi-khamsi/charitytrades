@@ -45,7 +45,8 @@ public class UserController {
             User user = userService.createUser(
                     request.getUsername(),
                     request.getEmail(),
-                    request.getPassword()
+                    request.getPassword(),
+                    request.getAccountType()
             );
             return ResponseEntity.status(HttpStatus.CREATED).body(UserDTO.fromEntity(user));
         } catch (RuntimeException e) {

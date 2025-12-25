@@ -12,7 +12,6 @@ public class RateLimiter {
 
     public RateLimiter(@Value("${globalgiving.rate-limit.requests-per-second:2}") int requestsPerSecond) {
         this.requestsPerSecond = requestsPerSecond;
-        // 2 requests/sec = 500ms minimum between requests
         this.minimumIntervalMs = 1000L / requestsPerSecond;
     }
 

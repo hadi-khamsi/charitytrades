@@ -2,30 +2,26 @@ spring:
   application:
     name: charitytrades
 
-  # PostgreSQL Database Configuration
   datasource:
     url: jdbc:postgresql://localhost:5432/charitytrades
     username: hadikhamsi
     password:
     driver-class-name: org.postgresql.Driver
 
-  # JPA / Hibernate Configuration
   jpa:
     hibernate:
-      ddl-auto: update  # Auto-creates/updates tables based on entities
-    show-sql: true      # Shows SQL queries in console
+      ddl-auto: update
+    show-sql: true
     properties:
       hibernate:
-        format_sql: true  # Pretty-prints SQL
+        format_sql: true
 
-# Server Configuration
 server:
   port: 8080
 
-# GlobalGiving API Configuration
 globalgiving:
   api:
     key: f94e500d-d161-4c9b-927e-62df28d0af72
     base-url: https://api.globalgiving.org
   rate-limit:
-    requests-per-second: 2  # rate limit to protect API key
+    requests-per-second: 2

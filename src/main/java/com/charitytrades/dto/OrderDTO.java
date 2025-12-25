@@ -2,6 +2,7 @@ package com.charitytrades.dto;
 
 import com.charitytrades.entity.Order;
 import com.charitytrades.entity.OrderStatus;
+import com.charitytrades.entity.RouteType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -13,7 +14,13 @@ public class OrderDTO {
     private String projectName;
     private BigDecimal amount;
     private OrderStatus status;
+    private RouteType routeType;
+    private BigDecimal matchedAmount;
+    private BigDecimal totalImpact;
+    private String matchedWithCorporate;
+    private String donationLink;
     private LocalDateTime createdAt;
+    private LocalDateTime settledAt;
 
     public OrderDTO() {}
 
@@ -26,7 +33,15 @@ public class OrderDTO {
         dto.projectName = order.getProject().getName();
         dto.amount = order.getAmount();
         dto.status = order.getStatus();
+        dto.routeType = order.getRouteType();
+        dto.matchedAmount = order.getMatchedAmount();
+        dto.totalImpact = order.getTotalImpact();
+        dto.donationLink = order.getDonationLink();
         dto.createdAt = order.getCreatedAt();
+        dto.settledAt = order.getSettledAt();
+        if (order.getMatchedWith() != null) {
+            dto.matchedWithCorporate = order.getMatchedWith().getCorporateUser().getUsername();
+        }
         return dto;
     }
 
@@ -44,6 +59,18 @@ public class OrderDTO {
     public void setAmount(BigDecimal amount) { this.amount = amount; }
     public OrderStatus getStatus() { return status; }
     public void setStatus(OrderStatus status) { this.status = status; }
+    public RouteType getRouteType() { return routeType; }
+    public void setRouteType(RouteType routeType) { this.routeType = routeType; }
+    public BigDecimal getMatchedAmount() { return matchedAmount; }
+    public void setMatchedAmount(BigDecimal matchedAmount) { this.matchedAmount = matchedAmount; }
+    public BigDecimal getTotalImpact() { return totalImpact; }
+    public void setTotalImpact(BigDecimal totalImpact) { this.totalImpact = totalImpact; }
+    public String getMatchedWithCorporate() { return matchedWithCorporate; }
+    public void setMatchedWithCorporate(String matchedWithCorporate) { this.matchedWithCorporate = matchedWithCorporate; }
+    public String getDonationLink() { return donationLink; }
+    public void setDonationLink(String donationLink) { this.donationLink = donationLink; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getSettledAt() { return settledAt; }
+    public void setSettledAt(LocalDateTime settledAt) { this.settledAt = settledAt; }
 }
